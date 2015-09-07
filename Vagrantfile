@@ -48,6 +48,7 @@ Vagrant.configure(2) do |config|
   # Example for VirtualBox:
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
+    vb.name = File.basename(Dir.pwd); #taken from VVV
     vb.customize ["modifyvm", :id, "--memory", 1024]
     vb.customize ["modifyvm", :id, "--cpus", 1]
     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
