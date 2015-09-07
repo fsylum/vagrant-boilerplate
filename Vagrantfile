@@ -69,6 +69,10 @@ Vagrant.configure(2) do |config|
   #   push.dir = "src"
   # end
 
+  # Fix no-tty issue
+  # See: https://github.com/mitchellh/vagrant/issues/1673
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
