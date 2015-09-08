@@ -17,6 +17,9 @@ ln -sf /srv/config/apt-sources.list /etc/apt/sources.list.d/apt-sources.list
 echo "Adding nginx signing key..."
 wget --quiet http://nginx.org/keys/nginx_signing.key -O- | apt-key add -
 
+# Note the new setup script name for Node.js v0.12
+curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+
 # MySQL
 echo "Setting up default MySQL password..."
 echo mysql-server mysql-server/root_password password password | debconf-set-selections
@@ -31,7 +34,7 @@ apt_packages=(
     imagemagick
     mysql-server
     nginx
-    #nodejs
+    nodejs
     php5-cli
     php5-common
     php5-curl
@@ -101,13 +104,29 @@ EOF
 
 # phpMyAdmin
 echo "Configuring phpMyAdmin..."
-ln -s /usr/share/phpmyadmin /srv/www/
+ln -sf /usr/share/phpmyadmin /srv/www/
 cp /srv/config/phpmyadmin/config.inc.php /etc/phpmyadmin/config.inc.php
+
+# Composer
+if [[ ! -n "$(composer --version --no-ansi | grep 'Composer version')" ]]; then
+        echo "Installing Composer..."
+        curl -sS https://getcomposer.org/installer | php
+        chmod +x composer.phar
+        mv composer.phar /usr/local/bin/composer
+fi
+
+echo "Updating Composer..."
+composer self-update
+
+echo "Updating npm..."
+npm install -g npm
+npm install -g npm-check-updates
 
 # Restart all the services
 echo "Restarting services..."
 service php5-fpm restart
 service nginx restart
+service mysql restart
 
 # Add vagrant user to the www-data group
 echo "Adding vagrant user to the www-data group..."
@@ -115,38 +134,4 @@ usermod -a -G www-data vagrant
 
 # Calculate time taken and inform the user
 time_end="$(date +%s)"
-echo "Provisioning complete in "$(expr $time_end - $time_start)" seconds"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# npm install -g npm
-# npm install -g npm-check-updates
-
-# MySQL
-#
-# Use debconf-set-selections to specify the default password for the root MySQL
-# account. This runs on every provision, even if MySQL has been installed. If
-# MySQL is already installed, it will not affect anything.
-#echo mysql-server mysql-server/root_password password root | debconf-set-selections
-#echo mysql-server mysql-server/root_password_again password root | debconf-set-selections
-
-# if [[ ! -n "$(composer --version --no-ansi | grep 'Composer version')" ]]; then
-#         echo "Installing Composer..."
-#         curl -sS https://getcomposer.org/installer | php
-#         chmod +x composer.phar
-#         mv composer.phar /usr/local/bin/composer
-#     fi
-
+echo "Provisioning completed in "$(expr $time_end - $time_start)" seconds"
