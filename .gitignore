@@ -1,1 +1,3 @@
 .vagrant
+logs/*.log
+www/*
