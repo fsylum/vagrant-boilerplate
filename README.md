@@ -1,4 +1,4 @@
-Simple Vagrant setup for LEMP development environment.
+Simple LEMP development stack using Vagrant
 
 [VVV](https://github.com/Varying-Vagrant-Vagrants/VVV) is a fantastic Vagrant setup, where much of the provisioning of this setup is based on. However, VVV provides lot of things out of the box which I don't necessarily require in my development workflow, plus is catered more on WordPress development. On the other hand, I would only need a simple LEMP stack, that also works well on my Windows machine. Strictly for my personal use only, please use with caution.
 
