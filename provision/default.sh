@@ -22,8 +22,8 @@ curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
 
 # MySQL
 echo "Setting up default MySQL password..."
-echo mysql-server mysql-server/root_password password password | debconf-set-selections
-echo mysql-server mysql-server/root_password_again password password | debconf-set-selections
+echo mariadb-server mysql-server/root_password password password | debconf-set-selections
+echo mariadb-server mysql-server/root_password_again password password | debconf-set-selections
 
 # List of all required packages
 apt_packages=(
@@ -32,7 +32,7 @@ apt_packages=(
     gettext
     git
     imagemagick
-    mysql-server
+    mariadb-server
     nginx
     nodejs
     php5-cli
