@@ -6,6 +6,10 @@
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 Vagrant.configure(2) do |config|
+  # Store directory name as reference to sitename
+  vagrant_sitename = File.basename(Dir.pwd); #taken from VVV
+  vagrant_domain = "#{vagrant_sitename}.dev"
+
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
@@ -28,6 +32,7 @@ Vagrant.configure(2) do |config|
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
   config.vm.network "private_network", ip: "192.168.18.9"
+  config.vm.hostname = "#{vagrant_domain}"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
@@ -47,7 +52,7 @@ Vagrant.configure(2) do |config|
   # Example for VirtualBox:
   config.vm.provider "virtualbox" do |vb|
     vb.gui  = false
-    vb.name = File.basename(Dir.pwd); #taken from VVV
+    vb.name = vagrant_sitename
     vb.customize ["modifyvm", :id, "--memory", 512]
     vb.customize ["modifyvm", :id, "--cpus", 1]
     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
@@ -78,5 +83,5 @@ Vagrant.configure(2) do |config|
   config.vm.provision "shell", path: "provision/default.sh"
 
   # WordPress specific provisioning, uncomment to use
-  # config.vm.provision "shell", path: "provision/wordpress.sh"
+  # config.vm.provision "shell", path: "provision/wordpress.sh", args: "#{vagrant_domain}"
 end
