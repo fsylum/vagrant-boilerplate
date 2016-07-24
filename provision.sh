@@ -122,6 +122,13 @@ echo "Updating npm..."
 npm install -g npm
 npm install -g npm-check-updates
 
+# Setup default MySQL table
+echo "Setting up MySQL table"
+mysql -u root -ppassword << EOF
+CREATE DATABASE IF NOT EXISTS wp;
+GRANT ALL PRIVILEGES ON wp.* TO 'wp'@'localhost' IDENTIFIED BY 'password';
+EOF
+
 # Restart all the services
 echo "Restarting services..."
 service php5-fpm restart
