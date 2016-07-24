@@ -12,7 +12,7 @@ This is a personal Vagrant setup that I use for each project that I manage. It's
 * [Vagrant](https://www.vagrantup.com/)
 * [Vagrant::Hostsupdater](https://github.com/cogitatio/vagrant-hostsupdater)
 
-_Note: Vagrant::Hostsupdater is optional to automatically add the entry to the hosts file. If you skip that, you will need to manually edit the hosts file and add the related entry yourself_
+_Note: Vagrant::Hostsupdater is optional to automatically add the entry to the hosts file. If you skip that, you will need to manually edit the hosts file and add the related entry yourself._
 
 ## Usage
 
@@ -23,14 +23,13 @@ vagrant up
 ```
 
 All Vagrant commands like `vagrant halt`, `vagrant destroy` and `vagrant suspend` is applicable.
-* `provision` - Hold the provision scripts, including the WordPress specific provisioning,
 
 ## Credentials
 
 MySQL root:
 
 **User**: `root`
-**Password: `password`
+**Password**: `password`
 
 Additional MySQL access:
 
