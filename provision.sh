@@ -1,96 +1,129 @@
 #!/bin/bash
-#
-# Default provisioning file that will be used by Vagrant whenever
-# `vagrant up`, ` vagrant provision` or `vagrant reload` commands are
-# used.
 
 export DEBIAN_FRONTEND=noninteractive
 
 # Set start time
 time_start="$(date +%s)"
 
+# Get domain name passed from Vagrantfile
+vagrant_domain=$1
+
 # Add additional sources for packages
 echo "Updating package sources..."
-ln -sf /srv/config/apt-sources.list /etc/apt/sources.list.d/apt-sources.list
+ln -sf /srv/config/apt-sources-extra.list /etc/apt/sources.list.d/apt-sources-extra.list
 
 # Add nginx signing key
 echo "Adding nginx signing key..."
 wget --quiet http://nginx.org/keys/nginx_signing.key -O- | apt-key add -
 
-# Note the new setup script name for Node.js v0.12
-curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
-
-# MySQL
-echo "Setting up default MySQL password..."
+# Set MySQL default roow password
+echo "Setting up root MySQL password..."
 echo mariadb-server mysql-server/root_password password password | debconf-set-selections
 echo mariadb-server mysql-server/root_password_again password password | debconf-set-selections
 
-# List of all required packages
-apt_packages=(
-    curl
-    dos2unix
-    gettext
-    git
-    imagemagick
-    mariadb-server
-    nginx
-    nodejs
-    php5-cli
-    php5-common
-    php5-curl
-    php5-dev
-    php5-fpm
-    php5-gd
-    php5-imagick
-    php5-imap
-    php5-mcrypt
-    php5-mysqlnd
-    php5-xmlrpc
-    php-pear
-    phpmyadmin
-    unzip
+# phpMyAdmin unattended installation
+# See: http://stackoverflow.com/questions/30741573/debconf-selections-for-phpmyadmin-unattended-installation-with-no-webserver-inst
+echo phpmyadmin phpmyadmin/internal/skip-preseed boolean true | debconf-set-selections
+echo phpmyadmin phpmyadmin/reconfigure-webserver multiselect none | debconf-set-selections
+echo phpmyadmin phpmyadmin/dbconfig-install boolean false | debconf-set-selections
+
+# Add Node.js source
+curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+
+# Update the list, disabled since the above command will already trigger apt-get update
+#echo "Updating package list..."
+#apt-get update --assume-yes
+
+# Install the packages
+apt-get install -y --force-yes \
+    nginx \
+    build-essential \
+    curl \
+    dos2unix \
+    gettext \
+    git \
+    imagemagick \
+    mariadb-server \
+    nodejs \
+    ntp \
+    php7.0-cli \
+    php7.0-common \
+    php7.0-curl \
+    php7.0-fpm \
+    php7.0-dev \
+    php7.0-gd \
+    php7.0-imap \
+    php7.0-mbstring \
+    php7.0-mcrypt \
+    php7.0-mysql \
+    php7.0-soap \
+    php7.0-xmlrpc \
+    php-gettext \
+    php-imagick \
+    php-pear \
+    subversion \
+    unzip \
     zip
-)
 
-# Update the list
-echo "Updating package list..."
-apt-get update --assume-yes
+# phpMyAdmin needs to be installed separately as it pulls down apache
+apt-get install -y --force-yes --no-install-recommends phpmyadmin
 
-# Loop through all the packages to filter only the one that yet to be installed
-for i in "${!apt_packages[@]}"; do
-    package_version="$(dpkg -s ${apt_packages[$i]} 2>&1 | grep 'Version:' | cut -d " " -f 2)"
-    if [[ -n "${package_version}" ]]; then
-        echo " *" ${apt_packages[$i]} [already installed]
-        unset apt_packages[$i]
-    else
-        echo " *" ${apt_packages[${i}]} [not installed]
-    fi
-done
-
-# Installe the packages
-if [[ ${#apt_packages[@]} = 0 ]]; then
-    echo "No package to install"
-else
-    echo "Installing required packages..."
-    apt-get install --assume-yes ${apt_packages[@]}
+# Install Composer
+if [ ! -f /usr/local/bin/composer ]; then
+        echo "Installing Composer..."
+        curl -sS https://getcomposer.org/installer | php
+        chmod +x composer.phar
+        mv composer.phar /usr/local/bin/composer
 fi
+
+# Install WP-CLI
+if [ ! -f /usr/local/bin/wp ]; then
+    echo "Installing wp-cli..."
+    curl -sS -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    chmod +x wp-cli.phar
+    mv wp-cli.phar /usr/local/bin/wp
+fi
+
+# Install mailhog
+wget --quiet -O ~/mailhog https://github.com/mailhog/MailHog/releases/download/v0.2.0/MailHog_linux_amd64
+chmod +x ~/mailhog
+mv ~/mailhog /usr/local/bin/mailhog
+
+tee /etc/init/mailhog.conf <<EOL
+description "Mailhog"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+
+exec /usr/bin/env $(which mailhog)
+EOL
+service mailhog start
+
+# Install mhsendmail
+wget --quiet -O ~/mhsendmail https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64
+chmod +x ~/mhsendmail
+mv ~/mhsendmail /usr/local/bin/mhsendmail
 
 # Post installation cleanup
 echo "Cleaning up..."
-apt-get clean
+apt-get autoremove
 
-# nginx
+# nginx initial setup
 echo "Configuring nginx..."
 cp /srv/config/nginx/nginx.conf /etc/nginx/nginx.conf
 cp /srv/config/nginx/default.conf /etc/nginx/conf.d/default.conf
+sed -i "s/VAGRANT_DOMAIN/$vagrant_domain/g" /etc/nginx/conf.d/default.conf
 
-# PHP-FPM
-echo "Configuring php5-fpm..."
-php5enmod mcrypt
-cp /srv/config/php5-fpm/www.conf /etc/php5/fpm/pool.d/www.conf
-cp /srv/config/php5-fpm/php-custom.ini /etc/php5/fpm/conf.d/php-custom.ini
+# PHP initial setup
+echo "Configuring PHP..."
+phpenmod mcrypt
+phpenmod mbstring
+cp /srv/config/php/php-custom.ini /etc/php/7.0/fpm/conf.d/php-custom.ini
+sed -i "s/VAGRANT_DOMAIN/$vagrant_domain/g" /etc/php/7.0/fpm/conf.d/php-custom.ini
 
-# MySQL
+# MySQL initial setup
 echo "Configuring MySQL..."
 mysql_install_db
 mysql_secure_installation<<EOF
@@ -102,22 +135,16 @@ Y
 Y
 EOF
 
-# phpMyAdmin
+# phpMyAdmin initial setup
 echo "Configuring phpMyAdmin..."
 ln -sf /usr/share/phpmyadmin /srv/www/
 cp /srv/config/phpmyadmin/config.inc.php /etc/phpmyadmin/config.inc.php
 
-# Composer
-if [[ ! -n "$(composer --version --no-ansi | grep 'Composer version')" ]]; then
-        echo "Installing Composer..."
-        curl -sS https://getcomposer.org/installer | php
-        chmod +x composer.phar
-        mv composer.phar /usr/local/bin/composer
-fi
-
+# Update Composer
 echo "Updating Composer..."
 composer self-update
 
+# Update npm and npm-check-updates
 echo "Updating npm..."
 npm install -g npm
 npm install -g npm-check-updates
@@ -131,13 +158,15 @@ EOF
 
 # Restart all the services
 echo "Restarting services..."
-service php5-fpm restart
-service nginx restart
 service mysql restart
+service php7.0-fpm restart
+service nginx restart
+service mailhog restart
 
-# Add vagrant user to the www-data group
+# Add vagrant user to the www-data group with correct owner
 echo "Adding vagrant user to the www-data group..."
 usermod -a -G www-data vagrant
+chown -R www-data:www-data /srv/www/
 
 # Calculate time taken and inform the user
 time_end="$(date +%s)"

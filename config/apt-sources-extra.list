@@ -3,3 +3,7 @@
 # nginx
 deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
 deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
+
+# php
+deb http://ppa.launchpad.net/ondrej/php/ubuntu trusty main
+deb-src http://ppa.launchpad.net/ondrej/php/ubuntu trusty main
