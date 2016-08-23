@@ -9,6 +9,7 @@ Vagrant.configure(2) do |config|
   # Store directory name as reference to sitename
   vagrant_sitename = File.basename(Dir.pwd); #taken from VVV
   vagrant_domain = "#{vagrant_sitename}.dev"
+  vagrant_ip = "192.168." + Array.new(2){rand(256)}.join('.')
 
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
@@ -31,7 +32,7 @@ Vagrant.configure(2) do |config|
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
-  config.vm.network "private_network", ip: "192.168.18.9"
+  config.vm.network "private_network", ip: "#{vagrant_ip}"
   config.vm.hostname = "#{vagrant_domain}"
 
   # Create a public network, which generally matched to bridged network.
