@@ -16,6 +16,9 @@ ln -sf /srv/config/apt-sources-extra.list /etc/apt/sources.list.d/apt-sources-ex
 echo "Adding nginx signing key..."
 wget --quiet http://nginx.org/keys/nginx_signing.key -O- | apt-key add -
 
+# Fix missing pub keys
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
+
 # Set MySQL default roow password
 echo "Setting up root MySQL password..."
 echo mariadb-server mysql-server/root_password password password | debconf-set-selections
