@@ -17,7 +17,9 @@ echo "Adding nginx signing key..."
 wget --quiet http://nginx.org/keys/nginx_signing.key -O- | apt-key add -
 
 # Fix missing pub keys
+echo "Adding missing public keys..."
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1655A0AB68576280
 
 # Set MySQL default roow password
 echo "Setting up root MySQL password..."
@@ -26,18 +28,17 @@ echo mariadb-server mysql-server/root_password_again password password | debconf
 
 # phpMyAdmin unattended installation
 # See: http://stackoverflow.com/questions/30741573/debconf-selections-for-phpmyadmin-unattended-installation-with-no-webserver-inst
+echo "Setting up default phpMyAdmin configuration..."
 echo phpmyadmin phpmyadmin/internal/skip-preseed boolean true | debconf-set-selections
 echo phpmyadmin phpmyadmin/reconfigure-webserver multiselect none | debconf-set-selections
 echo phpmyadmin phpmyadmin/dbconfig-install boolean false | debconf-set-selections
 
-# Add Node.js source
-curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-
-# Update the list, disabled since the above command will already trigger apt-get update
-#echo "Updating package list..."
-#apt-get update --assume-yes
+# Update the list, trying to fix hash sum mismatche error
+echo "Updating package list..."
+apt-get update --assume-yes -o Acquire::CompressionTypes::Order::=gz
 
 # Install the packages
+echo "Installing required packages"
 apt-get install -y --force-yes \
     nginx \
     build-essential \
@@ -91,17 +92,6 @@ fi
 wget --quiet -O ~/mailhog https://github.com/mailhog/MailHog/releases/download/v0.2.0/MailHog_linux_amd64
 chmod +x ~/mailhog
 mv ~/mailhog /usr/local/bin/mailhog
-
-tee /etc/init/mailhog.conf <<EOL
-description "Mailhog"
-
-start on runlevel [2345]
-stop on runlevel [!2345]
-
-respawn
-
-exec /usr/bin/env $(which mailhog)
-EOL
 service mailhog start
 
 # Install mhsendmail
@@ -142,6 +132,10 @@ EOF
 echo "Configuring phpMyAdmin..."
 ln -sf /usr/share/phpmyadmin /srv/www/
 cp /srv/config/phpmyadmin/config.inc.php /etc/phpmyadmin/config.inc.php
+
+# Mailhog initial setup
+echo "Configuring Mailhog"
+cp /srv/config/mailhog/mailhog.conf /etc/init/mailhog.conf
 
 # Update Composer
 echo "Updating Composer..."

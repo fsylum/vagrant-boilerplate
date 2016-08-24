@@ -4,6 +4,10 @@
 deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
 deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
 
-# php
+# PHP
 deb http://ppa.launchpad.net/ondrej/php/ubuntu trusty main
 deb-src http://ppa.launchpad.net/ondrej/php/ubuntu trusty main
+
+# Node.js
+deb https://deb.nodesource.com/node_6.x trusty main
+deb-src https://deb.nodesource.com/node_6.x trusty main
