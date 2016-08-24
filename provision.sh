@@ -70,6 +70,7 @@ apt-get install -y --force-yes \
     zip
 
 # phpMyAdmin needs to be installed separately as it pulls down apache
+echo "Installing phpMyAdmin..."
 apt-get install -y --force-yes --no-install-recommends phpmyadmin
 
 # Install Composer
@@ -89,12 +90,14 @@ if [ ! -f /usr/local/bin/wp ]; then
 fi
 
 # Install mailhog
+echo "Installing mailhog..."
 wget --quiet -O ~/mailhog https://github.com/mailhog/MailHog/releases/download/v0.2.0/MailHog_linux_amd64
 chmod +x ~/mailhog
 mv ~/mailhog /usr/local/bin/mailhog
 service mailhog start
 
 # Install mhsendmail
+echo "Installing mhsendmail..."
 wget --quiet -O ~/mhsendmail https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64
 chmod +x ~/mhsendmail
 mv ~/mhsendmail /usr/local/bin/mhsendmail
@@ -144,7 +147,6 @@ composer self-update
 # Update npm and npm-check-updates
 echo "Updating npm..."
 npm install -g npm
-npm install -g npm-check-updates
 
 # Setup default MySQL table
 echo "Setting up MySQL table"
