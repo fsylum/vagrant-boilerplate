@@ -100,12 +100,14 @@ if (!empty($dbname)) {
 }
 
 /* Authentication type */
-$cfg['Servers'][$i]['auth_type']       = 'cookie';
+$cfg['Servers'][$i]['auth_type']       = 'config';
 $cfg['Servers'][$i]['host']            = 'localhost';
 $cfg['Servers'][$i]['connect_type']    = 'tcp';
 $cfg['Servers'][$i]['compress']        = false;
 $cfg['Servers'][$i]['extension']       = 'mysqli';
 $cfg['Servers'][$i]['AllowNoPassword'] = false;
+$cfg['Servers'][$i]['user']            = 'root';
+$cfg['Servers'][$i]['password']        = 'password'; // use here your password
 
 /*
  * End of servers configuration
