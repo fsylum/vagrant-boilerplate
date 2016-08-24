@@ -33,8 +33,11 @@ echo phpmyadmin phpmyadmin/internal/skip-preseed boolean true | debconf-set-sele
 echo phpmyadmin phpmyadmin/reconfigure-webserver multiselect none | debconf-set-selections
 echo phpmyadmin phpmyadmin/dbconfig-install boolean false | debconf-set-selections
 
-# Update the list, trying to fix hash sum mismatche error
+# Update the list, trying to fix hash sum mismatch error
+# TODO: Figure out how to properly fix this
 echo "Updating package list..."
+rm -rf /var/lib/apt/lists/*
+apt-get clean
 apt-get update --assume-yes -o Acquire::CompressionTypes::Order::=gz
 
 # Install the packages
@@ -94,7 +97,6 @@ echo "Installing mailhog..."
 wget --quiet -O ~/mailhog https://github.com/mailhog/MailHog/releases/download/v0.2.0/MailHog_linux_amd64
 chmod +x ~/mailhog
 mv ~/mailhog /usr/local/bin/mailhog
-service mailhog start
 
 # Install mhsendmail
 echo "Installing mhsendmail..."
@@ -104,7 +106,7 @@ mv ~/mhsendmail /usr/local/bin/mhsendmail
 
 # Post installation cleanup
 echo "Cleaning up..."
-apt-get autoremove
+apt-get -y --force-yes autoremove
 
 # nginx initial setup
 echo "Configuring nginx..."
@@ -160,7 +162,7 @@ echo "Restarting services..."
 service mysql restart
 service php7.0-fpm restart
 service nginx restart
-service mailhog restart
+service mailhog start
 
 # Add vagrant user to the www-data group with correct owner
 echo "Adding vagrant user to the www-data group..."
