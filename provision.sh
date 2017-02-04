@@ -16,34 +16,34 @@ ln -sf /srv/config/apt-sources-extra.list /etc/apt/sources.list.d/apt-sources-ex
 echo "Adding nginx signing key..."
 wget --quiet http://nginx.org/keys/nginx_signing.key -O- | apt-key add -
 
+# Add nodejs signing key
+echo "Adding nodejs signing key..."
+wget --quiet -O- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
+
 # Fix missing pub keys
 echo "Adding missing public keys..."
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1655A0AB68576280
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C #PHP
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 80E7349A06ED541C #phpMyAdmin
 
-# Set MySQL default roow password
+# Set MySQL default root password
 echo "Setting up root MySQL password..."
 echo mariadb-server mysql-server/root_password password password | debconf-set-selections
 echo mariadb-server mysql-server/root_password_again password password | debconf-set-selections
 
 # phpMyAdmin unattended installation
-# See: http://stackoverflow.com/questions/30741573/debconf-selections-for-phpmyadmin-unattended-installation-with-no-webserver-inst
+# See: http://gercogandia.blogspot.my/2012/11/automatic-unattended-install-of.html
 echo "Setting up default phpMyAdmin configuration..."
-echo phpmyadmin phpmyadmin/internal/skip-preseed boolean true | debconf-set-selections
+echo phpmyadmin phpmyadmin/dbconfig-install boolean true | debconf-set-selections
+echo phpmyadmin phpmyadmin/app-password-confirm password password | debconf-set-selections
+echo phpmyadmin phpmyadmin/mysql/admin-pass password password | debconf-set-selections
+echo phpmyadmin phpmyadmin/mysql/app-pass password password | debconf-set-selections
 echo phpmyadmin phpmyadmin/reconfigure-webserver multiselect none | debconf-set-selections
-echo phpmyadmin phpmyadmin/dbconfig-install boolean false | debconf-set-selections
 
-# Update the list, trying to fix hash sum mismatch error
-# TODO: Figure out how to properly fix this
-echo "Updating package list..."
-rm -rf /var/lib/apt/lists/*
-apt-get clean
-apt-get update --assume-yes -o Acquire::CompressionTypes::Order::=gz
+echo "Updating packages list..."
+apt-get update
 
-# Install the packages
-echo "Installing required packages"
-apt-get install -y --force-yes \
-    nginx \
+echo "Installing required packages..."
+apt-get install -y \
     build-essential \
     curl \
     dos2unix \
@@ -51,20 +51,23 @@ apt-get install -y --force-yes \
     git \
     imagemagick \
     mariadb-server \
+    nginx \
     nodejs \
     ntp \
-    php7.0-cli \
-    php7.0-common \
-    php7.0-curl \
-    php7.0-fpm \
-    php7.0-dev \
-    php7.0-gd \
-    php7.0-imap \
-    php7.0-mbstring \
-    php7.0-mcrypt \
-    php7.0-mysql \
-    php7.0-soap \
-    php7.0-xmlrpc \
+    php7.1-cli \
+    php7.1-common \
+    php7.1-curl \
+    php7.1-fpm \
+    php7.1-dev \
+    php7.1-gd \
+    php7.1-imap \
+    php7.1-mbstring \
+    php7.1-mcrypt \
+    php7.1-mysql \
+    php7.1-soap \
+    php7.1-xml \
+    php7.1-xmlrpc \
+    php7.1-zip \
     php-gettext \
     php-imagick \
     php-pear \
@@ -72,16 +75,15 @@ apt-get install -y --force-yes \
     unzip \
     zip
 
-# phpMyAdmin needs to be installed separately as it pulls down apache
-echo "Installing phpMyAdmin..."
-apt-get install -y --force-yes --no-install-recommends phpmyadmin
+# Install phpmyadmin separately
+apt-get install -y phpmyadmin
 
 # Install Composer
 if [ ! -f /usr/local/bin/composer ]; then
-        echo "Installing Composer..."
-        curl -sS https://getcomposer.org/installer | php
-        chmod +x composer.phar
-        mv composer.phar /usr/local/bin/composer
+    echo "Installing Composer..."
+    curl -sS https://getcomposer.org/installer | php
+    chmod +x composer.phar
+    mv composer.phar /usr/local/bin/composer
 fi
 
 # Install WP-CLI
@@ -94,7 +96,7 @@ fi
 
 # Install mailhog
 echo "Installing mailhog..."
-wget --quiet -O ~/mailhog https://github.com/mailhog/MailHog/releases/download/v0.2.0/MailHog_linux_amd64
+wget --quiet -O ~/mailhog https://github.com/mailhog/MailHog/releases/download/v0.2.1/MailHog_linux_amd64
 chmod +x ~/mailhog
 mv ~/mailhog /usr/local/bin/mailhog
 
@@ -106,7 +108,7 @@ mv ~/mhsendmail /usr/local/bin/mhsendmail
 
 # Post installation cleanup
 echo "Cleaning up..."
-apt-get -y --force-yes autoremove
+apt-get -y autoremove
 
 # nginx initial setup
 echo "Configuring nginx..."
@@ -118,12 +120,11 @@ sed -i "s/VAGRANT_DOMAIN/$vagrant_domain/g" /etc/nginx/conf.d/default.conf
 echo "Configuring PHP..."
 phpenmod mcrypt
 phpenmod mbstring
-cp /srv/config/php/php-custom.ini /etc/php/7.0/fpm/conf.d/php-custom.ini
-sed -i "s/VAGRANT_DOMAIN/$vagrant_domain/g" /etc/php/7.0/fpm/conf.d/php-custom.ini
+cp /srv/config/php/php-custom.ini /etc/php/7.1/fpm/conf.d/php-custom.ini
+sed -i "s/VAGRANT_DOMAIN/$vagrant_domain/g" /etc/php/7.1/fpm/conf.d/php-custom.ini
 
 # MySQL initial setup
 echo "Configuring MySQL..."
-mysql_install_db
 mysql_secure_installation<<EOF
 password
 n
@@ -133,40 +134,30 @@ Y
 Y
 EOF
 
+mysql -u root -ppassword << EOF
+CREATE DATABASE IF NOT EXISTS vagrant;
+GRANT ALL PRIVILEGES ON vagrant.* TO 'vagrant'@'localhost' IDENTIFIED BY 'password';
+EOF
+
 # phpMyAdmin initial setup
 echo "Configuring phpMyAdmin..."
 ln -sf /usr/share/phpmyadmin /srv/www/
 cp /srv/config/phpmyadmin/config.inc.php /etc/phpmyadmin/config.inc.php
 
 # Mailhog initial setup
-echo "Configuring Mailhog"
-cp /srv/config/mailhog/mailhog.conf /etc/init/mailhog.conf
-
-# Update Composer
-echo "Updating Composer..."
-composer self-update
-
-# Update npm and npm-check-updates
-echo "Updating npm..."
-npm install -g npm
-
-# Setup default MySQL table
-echo "Setting up MySQL table"
-mysql -u root -ppassword << EOF
-CREATE DATABASE IF NOT EXISTS wp;
-GRANT ALL PRIVILEGES ON wp.* TO 'wp'@'localhost' IDENTIFIED BY 'password';
-EOF
+echo "Configuring Mailhog..."
+cp /srv/config/mailhog/mailhog.service  /lib/systemd/system/mailhog.service
 
 # Restart all the services
 echo "Restarting services..."
 service mysql restart
-service php7.0-fpm restart
+service php7.1-fpm restart
 service nginx restart
 service mailhog start
 
-# Add vagrant user to the www-data group with correct owner
-echo "Adding vagrant user to the www-data group..."
-usermod -a -G www-data vagrant
+# Add ubuntu user to the www-data group with correct owner
+echo "Adding user to the correct group..."
+usermod -a -G www-data ubuntu
 chown -R www-data:www-data /srv/www/
 
 # Calculate time taken and inform the user

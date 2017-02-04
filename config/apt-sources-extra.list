@@ -1,13 +1,17 @@
 # Additional sources for packages
 
 # nginx
-deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
-deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
+deb http://nginx.org/packages/mainline/ubuntu/ xenial nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ xenial nginx
 
 # PHP
-deb http://ppa.launchpad.net/ondrej/php/ubuntu trusty main
-deb-src http://ppa.launchpad.net/ondrej/php/ubuntu trusty main
+deb http://ppa.launchpad.net/ondrej/php/ubuntu xenial main
+deb-src http://ppa.launchpad.net/ondrej/php/ubuntu xenial main
 
 # Node.js
-deb https://deb.nodesource.com/node_6.x trusty main
-deb-src https://deb.nodesource.com/node_6.x trusty main
+deb https://deb.nodesource.com/node_7.x xenial main
+deb-src https://deb.nodesource.com/node_7.x xenial main
+
+# phpMyAdmin
+deb http://ppa.launchpad.net/nijel/phpmyadmin/ubuntu xenial main
+deb-src http://ppa.launchpad.net/nijel/phpmyadmin/ubuntu xenial main

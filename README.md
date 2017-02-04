@@ -22,7 +22,7 @@ cd <project-name>
 vagrant up
 ```
 
-All Vagrant commands like `vagrant halt`, `vagrant destroy` and `vagrant suspend` is applicable.
+All Vagrant commands like `vagrant halt`, `vagrant destroy` and `vagrant suspend` are applicable.
 
 ## Credentials
 
@@ -33,16 +33,16 @@ MySQL root:
 
 Additional MySQL access:
 
-**User**: `wp`
+**User**: `vagrant`
 **Password**: `password`
-**Database**: `wp`
+**Database**: `vagrant`
 
 ## What's Included?
 
-* [Ubuntu 14.04](http://www.ubuntu.com/)
+* [Ubuntu 16.04](http://www.ubuntu.com/)
 * [nginx (mainline)](http://nginx.org/)
-* [php-fpm 7.0.x](http://php-fpm.org/)
-* [MySQL 5.5.x](https://www.mysql.com/)
+* [php-fpm 7.1.x](http://php-fpm.org/)
+* [MariaDB 10.1.x](https://mariadb.org/)
 * [phpMyAdmin](https://www.phpmyadmin.net/)
 * [Git](https://git-scm.com/)
 * [Subversion](https://subversion.apache.org/)

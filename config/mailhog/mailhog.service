@@ -1,0 +1,12 @@
+[Unit]
+Description=Mailhog
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env mailhog
+StandardOutput=journal
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
