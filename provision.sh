@@ -148,6 +148,18 @@ cp /srv/config/phpmyadmin/config.inc.php /etc/phpmyadmin/config.inc.php
 echo "Configuring Mailhog..."
 cp /srv/config/mailhog/mailhog.service  /lib/systemd/system/mailhog.service
 
+# Swap
+echo "Setting up swap..."
+fallocate -l 4G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+sh -c 'echo "/swapfile none swap sw 0 0" >> /etc/fstab'
+sysctl vm.swappiness=10
+sysctl vm.vfs_cache_pressure=50
+sh -c "printf 'vm.swappiness=10\n' >> /etc/sysctl.conf"
+sh -c "printf 'vm.vfs_cache_pressure=50\n' >> /etc/sysctl.conf"
+
 # Restart all the services
 echo "Restarting services..."
 service mysql restart
