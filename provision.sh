@@ -146,7 +146,8 @@ cp /srv/config/phpmyadmin/config.inc.php /etc/phpmyadmin/config.inc.php
 
 # Mailhog initial setup
 echo "Configuring Mailhog..."
-cp /srv/config/mailhog/mailhog.service  /lib/systemd/system/mailhog.service
+cp /srv/config/mailhog/mailhog.service  /etc/systemd/system/mailhog.service
+systemctl enable mailhog
 
 # Swap
 echo "Setting up swap..."
