@@ -114,7 +114,9 @@ apt-get -y autoremove
 echo "Configuring nginx..."
 cp /srv/config/nginx/nginx.conf /etc/nginx/nginx.conf
 cp /srv/config/nginx/default.conf /etc/nginx/conf.d/default.conf
+cp /srv/config/nginx/mail.conf /etc/nginx/conf.d/mail.conf
 sed -i "s/VAGRANT_DOMAIN/$vagrant_domain/g" /etc/nginx/conf.d/default.conf
+sed -i "s/VAGRANT_DOMAIN/$vagrant_domain/g" /etc/nginx/conf.d/mail.conf
 
 # PHP initial setup
 echo "Configuring PHP..."
