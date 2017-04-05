@@ -28,7 +28,7 @@ Vagrant.configure(2) do |config|
   # using a specific IP.
   config.vm.network "private_network", ip: "#{vagrant_ip}"
   config.vm.hostname = "#{vagrant_domain}"
-  config.hostsupdater.aliases = ["mail.#{vagrant_domain}"]
+  config.hostsupdater.aliases = ["mail.#{vagrant_domain}", "db.#{vagrant_domain}"]
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
